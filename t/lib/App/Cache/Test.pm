@@ -5,9 +5,17 @@ use Digest::MD5 qw(md5 md5_hex md5_base64);
 use LWP::Simple qw(get);
 use Path::Class qw();
 use Storable qw(nstore retrieve);
+use File::Path qw(rmtree);
 use Test::More;
 use base qw( Class::Accessor::Chained::Fast );
 __PACKAGE__->mk_accessors(qw());
+
+sub cleanup {
+    my $self  = shift;
+    my $cache = App::Cache->new;
+    rmtree($cache->directory->parent->stringify );
+    ok(!-d $cache->directory->parent, 'removed cache dir');
+}
 
 sub file {
     my $self  = shift;
