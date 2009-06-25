@@ -235,6 +235,15 @@ Perl data structure:
   $cache->set('test', 'one');
   $cache->set('test', { foo => 'bar' });
 
+=head2 directory
+
+Returns the full path to the cache directory.  Primarily useful for when you
+are writing tests that use App::Cache and want to clean up after yourself.  If
+you are doing that you may want to explicitly set the 'application' constructor
+parameter to avoid later cleaning up a cache dir that was already in use.
+
+  my $dir = $cache->directory;
+
 =head1 AUTHOR
 
 Leon Brocard <acme@astray.com>
