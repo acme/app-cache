@@ -2,6 +2,7 @@ package App::Cache;
 use strict;
 use File::Find::Rule;
 use File::HomeDir;
+use File::Path qw( mkpath );
 use File::stat;
 use HTTP::Cookies;
 use LWP::UserAgent;
@@ -20,16 +21,14 @@ sub new {
     $self->application($caller);
   }
 
-  my $directory = dir(home(), "." . $self->_clean($self->application), "cache");
-  $self->directory($directory);
-
-  my $topdirectory = dir(home(), "." . $self->_clean($self->application));
-  unless (-d $topdirectory) {
-    mkdir($topdirectory) || die "Error mkdiring $topdirectory: $!";
+  unless ($self->directory) {
+    my $dir = dir(home(), "." . $self->_clean($self->application), "cache");
+    $self->directory($dir);
   }
-
-  unless (-d $directory) {
-    mkdir($directory) || die "Error mkdiring $directory: $!";
+  my $dir = $self->directory;
+  unless (-d "$dir") {
+    mkpath("$dir")
+        || die "Error mkdiring " . $self->directory . ": $!";
   }
 
   return $self;
@@ -176,14 +175,35 @@ per-application cache.
 
 =head2 new
 
-The constructor creates an L<App::Cache> object. It takes two optional
-parameters: a ttl parameter which contains the number of seconds in
-which a cache entry expires, and an application parameter which
-signifies the application name. If you are calling new() from a class,
-the application is automagically set to the calling class, so you should
-rarely need to pass it in:
+The constructor creates an L<App::Cache> object. It takes three optional
+parameters:
 
-  my $cache = App::Cache->new({ ttl => 60*60 });
+=over
+
+=item *
+
+ttl contains the number of seconds in which a cache entry expires.  The default
+is 30 minutes.
+
+  my $cache = App::Cache->new({ ttl => 30*60 });
+
+=item *
+
+application sets the application name. If you are calling new() from a class,
+the application is automagically set to the calling class, so you should rarely
+need to pass it in:
+
+  my $cache = App::Cache->new({ application => 'Your::Module' });
+
+=item *
+
+directory sets the directory to be used for the cache.  Normally this is just
+set for you and will be based on the application name and be created in the
+users home directory.   Sometimes for testing, it can be useful to set this.
+
+  my $cache = App::Cache->new({ directory => '/tmp/your/cache/dir' });
+
+=back
 
 =head2 clear
 
