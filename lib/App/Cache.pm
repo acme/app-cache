@@ -1,5 +1,6 @@
 package App::Cache;
 use strict;
+use warnings;
 use File::Find::Rule;
 use File::HomeDir;
 use File::Path qw( mkpath );

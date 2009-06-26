@@ -1,5 +1,6 @@
 package App::Cache::Test;
 use strict;
+use warnings;
 use App::Cache;
 use Digest::MD5 qw(md5 md5_hex md5_base64);
 use LWP::Simple qw(get);

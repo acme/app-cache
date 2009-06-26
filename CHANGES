@@ -4,6 +4,7 @@ CHANGES file for App::Cache:
   - allow cache directory to be set by caller (patch by Murray)
   - delete App::Cache::Test cache dir when done (patch by Murray)
   - add POD for directory method (patch by Murray)
+  - add "use warnings"
 
 0.35 Wed Sep 10 20:26:08 BST 2008
   - fixed manifest
