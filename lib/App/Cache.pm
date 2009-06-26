@@ -13,121 +13,124 @@ __PACKAGE__->mk_accessors(qw( application directory ttl ));
 our $VERSION = '0.35';
 
 sub new {
-  my $class = shift;
-  my $self  = $class->SUPER::new(@_);
+    my $class = shift;
+    my $self  = $class->SUPER::new(@_);
 
-  unless ($self->application) {
-    my $caller = (caller)[0];
-    $self->application($caller);
-  }
+    unless ( $self->application ) {
+        my $caller = (caller)[0];
+        $self->application($caller);
+    }
 
-  unless ($self->directory) {
-    my $dir = dir(home(), "." . $self->_clean($self->application), "cache");
-    $self->directory($dir);
-  }
-  my $dir = $self->directory;
-  unless (-d "$dir") {
-    mkpath("$dir")
-        || die "Error mkdiring " . $self->directory . ": $!";
-  }
+    unless ( $self->directory ) {
+        my $dir = dir( home(), "." . $self->_clean( $self->application ),
+            "cache" );
+        $self->directory($dir);
+    }
+    my $dir = $self->directory;
+    unless ( -d "$dir" ) {
+        mkpath("$dir")
+            || die "Error mkdiring " . $self->directory . ": $!";
+    }
 
-  return $self;
+    return $self;
 }
 
 sub clear {
-  my $self = shift;
-  foreach my $filename (File::Find::Rule->new->file->in($self->directory)) {
-    unlink($filename) || die "Error unlinking $filename: $!";
-  }
-  foreach my $dirname (sort { length($b) <=> length($a) }
-    File::Find::Rule->new->directory->in($self->directory))
-  {
-    next if $dirname eq $self->directory;
-    rmdir($dirname) || die "Error unlinking $dirname: $!";
-  }
+    my $self = shift;
+    foreach
+        my $filename ( File::Find::Rule->new->file->in( $self->directory ) )
+    {
+        unlink($filename) || die "Error unlinking $filename: $!";
+    }
+    foreach my $dirname ( sort { length($b) <=> length($a) }
+        File::Find::Rule->new->directory->in( $self->directory ) )
+    {
+        next if $dirname eq $self->directory;
+        rmdir($dirname) || die "Error unlinking $dirname: $!";
+    }
 }
 
 sub delete {
-  my ($self, $key) = @_;
-  my $filename = $self->_clean_filename($key);
-  return unless -f $filename;
-  unlink($filename) || die "Error unlinking $filename: $!";
+    my ( $self, $key ) = @_;
+    my $filename = $self->_clean_filename($key);
+    return unless -f $filename;
+    unlink($filename) || die "Error unlinking $filename: $!";
 }
 
 sub get {
-  my ($self, $key) = @_;
-  my $ttl = $self->ttl || 60 * 30;               # default ttl of 30 minutes
-  my $filename = $self->_clean_filename($key);
-  return undef unless -f $filename;
-  my $now   = time;
-  my $stat  = stat($filename) || die "Error stating $filename: $!";
-  my $ctime = $stat->ctime;
-  my $age   = $now - $ctime;
-  if ($age < $ttl) {
-    my $value = retrieve("$filename")
-      || die "Error reading from $filename: $!";
-    return $value->{value};
-  } else {
-    $self->delete($key);
-    return undef;
-  }
+    my ( $self, $key ) = @_;
+    my $ttl = $self->ttl || 60 * 30;               # default ttl of 30 minutes
+    my $filename = $self->_clean_filename($key);
+    return undef unless -f $filename;
+    my $now   = time;
+    my $stat  = stat($filename) || die "Error stating $filename: $!";
+    my $ctime = $stat->ctime;
+    my $age   = $now - $ctime;
+    if ( $age < $ttl ) {
+        my $value = retrieve("$filename")
+            || die "Error reading from $filename: $!";
+        return $value->{value};
+    } else {
+        $self->delete($key);
+        return undef;
+    }
 }
 
 sub get_code {
-  my ($self, $key, $code) = @_;
-  my $data = $self->get($key);
-  unless ($data) {
-    $data = $code->();
-    $self->set($key, $data);
-  }
-  return $data;
+    my ( $self, $key, $code ) = @_;
+    my $data = $self->get($key);
+    unless ($data) {
+        $data = $code->();
+        $self->set( $key, $data );
+    }
+    return $data;
 }
 
 sub get_url {
-  my ($self, $url) = @_;
-  my $data = $self->get($url);
-  unless ($data) {
-    my $ua       = LWP::UserAgent->new;
-    $ua->cookie_jar(HTTP::Cookies->new());
-    my $response = $ua->get($url);
-    if ($response->is_success) {
-      $data = $response->content;
-    } else {
-      die "Error fetching $url: " . $response->status_line;
+    my ( $self, $url ) = @_;
+    my $data = $self->get($url);
+    unless ($data) {
+        my $ua = LWP::UserAgent->new;
+        $ua->cookie_jar( HTTP::Cookies->new() );
+        my $response = $ua->get($url);
+        if ( $response->is_success ) {
+            $data = $response->content;
+        } else {
+            die "Error fetching $url: " . $response->status_line;
+        }
+        $self->set( $url, $data );
     }
-    $self->set($url, $data);
-  }
-  return $data;
+    return $data;
 }
 
 sub scratch {
-  my $self      = shift;
-  my $directory = $self->_clean_filename("_scratch");
-  unless (-d $directory) {
-    mkdir($directory) || die "Error mkdiring $directory: $!";
-  }
-  return $directory;
+    my $self      = shift;
+    my $directory = $self->_clean_filename("_scratch");
+    unless ( -d $directory ) {
+        mkdir($directory) || die "Error mkdiring $directory: $!";
+    }
+    return $directory;
 }
 
 sub set {
-  my ($self, $key, $value) = @_;
-  my $filename = $self->_clean_filename($key);
-  nstore({ value => $value }, "$filename")
-    || die "Error writing to $filename: $!";
+    my ( $self, $key, $value ) = @_;
+    my $filename = $self->_clean_filename($key);
+    nstore( { value => $value }, "$filename" )
+        || die "Error writing to $filename: $!";
 }
 
 sub _clean {
-  my ($self, $text) = @_;
-  $text = lc $text;
-  $text =~ s/[^a-z0-9]+/_/g;
-  return $text;
+    my ( $self, $text ) = @_;
+    $text = lc $text;
+    $text =~ s/[^a-z0-9]+/_/g;
+    return $text;
 }
 
 sub _clean_filename {
-  my ($self, $key) = @_;
-  $key = $self->_clean($key);
-  my $filename = file($self->directory, $key);
-  return $filename;
+    my ( $self, $key ) = @_;
+    $key = $self->_clean($key);
+    my $filename = file( $self->directory, $key );
+    return $filename;
 }
 
 1;
