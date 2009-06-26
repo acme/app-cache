@@ -33,31 +33,43 @@ DESCRIPTION
 
 METHODS
   new
-    The constructor creates an App::Cache object. It takes two optional
-    parameters: a ttl parameter which contains the number of seconds in
-    which a cache entry expires, and an application parameter which
-    signifies the application name. If you are calling new() from a class,
-    the application is automagically set to the calling class, so you should
-    rarely need to pass it in:
+    The constructor creates an App::Cache object. It takes three optional
+    parameters:
 
-      my $cache = App::Cache->new({ ttl => 60*60 });
+    *   ttl contains the number of seconds in which a cache entry expires.
+        The default is 30 minutes.
+
+          my $cache = App::Cache->new({ ttl => 30*60 });
+
+    *   application sets the application name. If you are calling new() from
+        a class, the application is automagically set to the calling class,
+        so you should rarely need to pass it in:
+
+          my $cache = App::Cache->new({ application => 'Your::Module' });
+
+    *   directory sets the directory to be used for the cache. Normally this
+        is just set for you and will be based on the application name and be
+        created in the users home directory. Sometimes for testing, it can
+        be useful to set this.
+
+          my $cache = App::Cache->new({ directory => '/tmp/your/cache/dir' });
 
   clear
     Clears the cache:
 
       $cache->clear;
-  
+
   delete
     Deletes an entry in the cache:
 
       $cache->delete('test');
-  
+
   get
     Gets an entry from the cache. Returns undef if the entry does not exist
     or if it has expired:
 
       my $data = $cache->get('test');
-  
+
   get_code
     This is a convenience method. Gets an entry from the cache, but if the
     entry does not exist, set the entry to the value of the code reference
@@ -85,12 +97,22 @@ METHODS
       $cache->set('test', 'one');
       $cache->set('test', { foo => 'bar' });
 
+  directory
+    Returns the full path to the cache directory. Primarily useful for when
+    you are writing tests that use App::Cache and want to clean up after
+    yourself. If you are doing that you may want to explicitly set the
+    'application' constructor parameter to avoid later cleaning up a cache
+    dir that was already in use.
+
+      my $dir = $cache->directory;
+
 AUTHOR
     Leon Brocard <acme@astray.com>
 
 COPYRIGHT
-    Copyright (C) 2005, Leon Brocard
+    Copyright (C) 2005-7, Leon Brocard
 
+LICENSE
     This module is free software; you can redistribute it or modify it under
     the same terms as Perl itself.
 
