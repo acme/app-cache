@@ -185,7 +185,7 @@ parameters:
 
 =item *
 
-ttl contains the number of seconds in which a cache entry expires.  The default
+ttl contains the number of seconds in which a cache entry expires. The default
 is 30 minutes.
 
   my $cache = App::Cache->new({ ttl => 30*60 });
@@ -200,9 +200,9 @@ need to pass it in:
 
 =item *
 
-directory sets the directory to be used for the cache.  Normally this is just
+directory sets the directory to be used for the cache. Normally this is just
 set for you and will be based on the application name and be created in the
-users home directory.   Sometimes for testing, it can be useful to set this.
+users home directory. Sometimes for testing, it can be useful to set this.
 
   my $cache = App::Cache->new({ directory => '/tmp/your/cache/dir' });
 
@@ -260,8 +260,8 @@ Perl data structure:
 
 =head2 directory
 
-Returns the full path to the cache directory.  Primarily useful for when you
-are writing tests that use App::Cache and want to clean up after yourself.  If
+Returns the full path to the cache directory. Primarily useful for when you
+are writing tests that use App::Cache and want to clean up after yourself. If
 you are doing that you may want to explicitly set the 'application' constructor
 parameter to avoid later cleaning up a cache dir that was already in use.
 
