@@ -54,6 +54,11 @@ METHODS
 
           my $cache = App::Cache->new({ directory => '/tmp/your/cache/dir' });
 
+    *   enabled can be set to 0 for testing, in which case you will always
+        get cache misses:
+
+          my $cache = App::Cache->new({ enabled => 0 });
+
   clear
     Clears the cache:
 

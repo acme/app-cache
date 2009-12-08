@@ -123,5 +123,12 @@ sub with_dir {
     ok( -d $dir, 'tmp_dir exists ok' );
 }
 
+sub disabled {
+    my $self = shift;
+    my $cache = App::Cache->new( { enabled => 0 } );
+    $cache->set( 'a', '1' );
+    is( $cache->get('a'), undef, 'disabled does not cache' );
+}
+
 1;
 

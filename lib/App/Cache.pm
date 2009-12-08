@@ -10,7 +10,7 @@ use LWP::UserAgent;
 use Path::Class;
 use Storable qw(nstore retrieve);
 use base qw( Class::Accessor::Chained::Fast );
-__PACKAGE__->mk_accessors(qw( application directory ttl ));
+__PACKAGE__->mk_accessors(qw( application directory ttl enabled ));
 our $VERSION = '0.36';
 
 sub new {
@@ -31,6 +31,10 @@ sub new {
     unless ( -d "$dir" ) {
         mkpath("$dir")
             || die "Error mkdiring " . $self->directory . ": $!";
+    }
+
+    unless ( defined $self->enabled ) {
+        $self->enabled(1);
     }
 
     return $self;
@@ -60,6 +64,7 @@ sub delete {
 
 sub get {
     my ( $self, $key ) = @_;
+    return unless $self->enabled;
     my $ttl = $self->ttl || 60 * 30;               # default ttl of 30 minutes
     my $filename = $self->_clean_filename($key);
     return undef unless -f $filename;
@@ -115,6 +120,7 @@ sub scratch {
 
 sub set {
     my ( $self, $key, $value ) = @_;
+    return unless $self->enabled;
     my $filename = $self->_clean_filename($key);
     nstore( { value => $value }, "$filename" )
         || die "Error writing to $filename: $!";
@@ -206,6 +212,13 @@ set for you and will be based on the application name and be created in the
 users home directory. Sometimes for testing, it can be useful to set this.
 
   my $cache = App::Cache->new({ directory => '/tmp/your/cache/dir' });
+
+=item *
+
+enabled can be set to 0 for testing, in which case you will always get
+cache misses:
+
+  my $cache = App::Cache->new({ enabled => 0 });
 
 =back
 
